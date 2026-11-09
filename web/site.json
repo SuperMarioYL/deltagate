@@ -1,0 +1,370 @@
+{
+  "schema": 3,
+  "name": "DeltaGate",
+  "github": "https://github.com/SuperMarioYL/deltagate",
+  "palette": "auto",
+  "lang": {
+    "primary": "zh",
+    "toggle": true
+  },
+  "hero": {
+    "eyebrow": {
+      "zh": "记录级放行闸门 · 已结构化 JSON",
+      "en": "Record-level release gate · structured JSON"
+    },
+    "headline": {
+      "zh": "换掉量化包之后，\n逐条判断哪些结果可以放行。",
+      "en": "After the quant swap,\nrelease or review each record."
+    },
+    "sub": {
+      "zh": "上一版已人工通过的输出就是参考值。按 output_type 给每个字段设 delta 限，逐条判 RELEASE 或 REVIEW；退出码 3 表示有待复查。",
+      "en": "The last human-approved output is the reference. Per-field delta limits per output_type decide RELEASE or REVIEW for every record; exit code 3 means something needs a reviewer."
+    },
+    "href": "#quickstart",
+    "cta": {
+      "zh": "开始使用",
+      "en": "Get started"
+    },
+    "ctaGithub": {
+      "zh": "在 GitHub 查看",
+      "en": "View on GitHub"
+    }
+  },
+  "advantages": [
+    {
+      "title": {
+        "zh": "判定单元是记录，不是批次",
+        "en": "The decision unit is a record, not a batch"
+      },
+      "body": {
+        "zh": "任一字段越限，或数组长度、增删字段这类结构变化，整条记录进人工队列；否则放行。没有批次总分通路，均分也就掩盖不了哪 4 条要重读。",
+        "en": "Any breached field, or a structural change such as an array resize or an added field, sends the whole record to review; otherwise it releases. There is no batch-score path, so an average cannot hide which four records need re-reading."
+      },
+      "chips": [
+        "RELEASE / REVIEW",
+        "per record"
+      ]
+    },
+    {
+      "title": {
+        "zh": "限值由假阳性预算标定",
+        "en": "Limits come from a false-flag budget"
+      },
+      "body": {
+        "zh": "calibrate 在已通过的历史快照上取分位数：5% 的预算对应 95 分位，稳定批次里约 5% 的记录会被标出。最新一对快照留作留出集，实测 flag 率写进报告与 manifest，不藏着。",
+        "en": "calibrate takes a quantile over accepted history: a 5% budget sits at the 95th percentile, so roughly 5% of a stable batch is flagged. The newest pair of snapshots is held out, and the measured flag rate goes into the report and the manifest rather than staying hidden."
+      },
+      "chips": [
+        "quantile 0.95",
+        "holdout flag rate"
+      ]
+    },
+    {
+      "title": {
+        "zh": "放行留下可核对的证据",
+        "en": "A release leaves checkable evidence"
+      },
+      "body": {
+        "zh": "check 写出 decisions.jsonl、report.html、manifest.json 与 review.csv。limits_version 由规则文件内容算出，manifest 记录版本、判定哈希与标定来源；accept 拒绝版本不一致的 review，也拒绝同一批次二次归档。",
+        "en": "check writes decisions.jsonl, report.html, manifest.json and review.csv. limits_version is derived from the rules file content; the manifest carries that version, the verdict hash and the calibration provenance. accept refuses a review written against different limits and refuses to archive the same batch twice."
+      },
+      "chips": [
+        "limits_version",
+        "manifest"
+      ]
+    }
+  ],
+  "demo": {
+    "title": {
+      "zh": "记录下来的运行",
+      "en": "Recorded runs"
+    },
+    "note": {
+      "zh": "下面的命令与输出逐字复制自 docs/demo-results.json 的实际记录：24 张合成票据，零网络调用。页面只呈现记录，不在浏览器里执行产品。",
+      "en": "The commands and output below are copied verbatim from the recorded run in docs/demo-results.json: 24 synthetic invoices, zero network calls. This page presents the record; it does not run the product in the browser."
+    },
+    "source": "https://github.com/SuperMarioYL/deltagate/blob/main/docs/demo-results.json",
+    "steps": [
+      {
+        "label": {
+          "zh": "从快照推断默认限",
+          "en": "Infer default limits"
+        },
+        "body": {
+          "zh": "init 扫出 1 个 output type、13 个字段，写入保守默认限。此时 limits_version 是 vecb5c3d46449，标定来源是 defaults。",
+          "en": "init scans one output type and 13 fields and writes conservative defaults. At this point limits_version is vecb5c3d46449 and the calibration source is defaults."
+        },
+        "image": "/assets/demo-init-light.svg",
+        "imageDark": "/assets/demo-init-dark.svg",
+        "command": "deltagate init --accepted examples/invoices/accepted --out rules-cal.yaml",
+        "output": "wrote rules-cal.yaml · limits vecb5c3d46449 · 1 output type(s) · 13 field(s) · defaults (budget 5.0%)"
+      },
+      {
+        "label": {
+          "zh": "从历史标定",
+          "en": "Calibrate against history"
+        },
+        "body": {
+          "zh": "3 个历史快照拟合出 1 个字段的限值，版本变为 v0f168164212b。留出的最后一对快照上实测 flag 率 3.1%，预算是 5.0%。",
+          "en": "Three historical snapshots fit the limit for one field and the version becomes v0f168164212b. On the held-out pair the measured flag rate is 3.1% against a 5.0% budget."
+        },
+        "image": "/assets/demo-calibrate-light.svg",
+        "imageDark": "/assets/demo-calibrate-dark.svg",
+        "command": "deltagate calibrate --history examples/invoices/history --rules rules-cal.yaml --budget 0.05",
+        "output": "calibrated 1 field(s) over 3 snapshot(s) · limits v0f168164212b · holdout 3.1% vs budget 5.0%"
+      },
+      {
+        "label": {
+          "zh": "逐条闸门",
+          "en": "Gate every record"
+        },
+        "body": {
+          "zh": "24 条候选：20 条放行、4 条进队列。两处金额越限（+0.79%、+10.0%），两处数组长度变化；退出码 3。",
+          "en": "24 candidates: 20 release and 4 enter the queue. Two money breaches (+0.79% and +10.0%) and two array-length changes; exit code 3."
+        },
+        "image": "/assets/demo-check-light.svg",
+        "imageDark": "/assets/demo-check-dark.svg",
+        "command": "deltagate check --baseline examples/invoices/accepted --candidate examples/invoices/rerun --rules rules-cal.yaml",
+        "output": "DeltaGate · limits v0f168164212b · budget 5.0% · source calibrated (holdout 3.1%)\n24 records  →  20 RELEASE   4 REVIEW   flag_rate 16.7% vs budget 5.0%\nexit 3  (review required)\n  INV-1007  invoice    total_amount   ¥1,284.00 → ¥1,294.20  Δ +0.79%  limit 0.50%  BREACH\n  INV-1009  invoice    line_items     length 3 → 2                                STRUCTURAL\n  INV-1013  invoice    line_items[1].amount  ¥88.00 → ¥96.80  Δ +10.0%  limit 0.50%  BREACH\n  INV-1021  invoice    line_items     length 4 → 3                                STRUCTURAL\nout/decisions.jsonl   out/report.html   out/manifest.json"
+      },
+      {
+        "label": {
+          "zh": "归档已评审批次",
+          "en": "Archive the reviewed batch"
+        },
+        "body": {
+          "zh": "先用记录里的那行 awk 把 review.csv 的 decision 列填成 release，再 accept：24 条记录归档成新快照，manifest 一并留存。批次号内嵌本次运行的 UTC 时间戳，manifest 值随之变化。",
+          "en": "The recorded sequence fills the decision column of review.csv with release using one awk line, then accepts: all 24 records are archived as a new snapshot together with the manifest. The batch id embeds that run's UTC timestamp, so the manifest value changes with it."
+        },
+        "image": "/assets/demo-accept-light.svg",
+        "imageDark": "/assets/demo-accept-dark.svg",
+        "command": "deltagate accept --manifest out/manifest.json --review review-filled.csv --into accepted/ --rules rules-cal.yaml",
+        "output": "accepted 24 record(s) into accepted/rerun-2026-11-02-20261109T223238Z · limits v0f168164212b · manifest 7076cd17d4db"
+      }
+    ]
+  },
+  "quickstart": {
+    "title": {
+      "zh": "从安装到归档",
+      "en": "From install to archive"
+    },
+    "body": {
+      "zh": "需要 Python 3.12+ 与 uv。仓库自带 24 张合成票据的 fixture，check 全程离线、不需要 API key；按上面的命令走，通常两三分钟出结果。",
+      "en": "Python 3.12+ and uv. The repository ships a 24-invoice synthetic fixture; check runs fully offline and needs no API key. With the commands above, the first result usually arrives in two or three minutes."
+    },
+    "steps": [
+      {
+        "title": {
+          "zh": "克隆并安装",
+          "en": "Clone and install"
+        },
+        "code": "git clone https://github.com/SuperMarioYL/deltagate.git\ncd deltagate\nuv venv\nuv pip install -e .\nsource .venv/bin/activate"
+      },
+      {
+        "title": {
+          "zh": "跑自带的 fixture",
+          "en": "Run the bundled fixture"
+        },
+        "code": "deltagate check --baseline examples/invoices/accepted --candidate examples/invoices/rerun --rules examples/invoices/rules.yaml"
+      },
+      {
+        "title": {
+          "zh": "处理 4 条 REVIEW 并归档",
+          "en": "Decide the 4 REVIEW rows and archive"
+        },
+        "code": "cat out/review.csv\n# fill decision with release or reject (a reject needs a reason), then:\ndeltagate accept --manifest out/manifest.json --review out/review.csv --into accepted/ --rules examples/invoices/rules.yaml"
+      },
+      {
+        "title": {
+          "zh": "或装成一个独立命令",
+          "en": "Or install it as a standalone command"
+        },
+        "code": "pipx install git+https://github.com/SuperMarioYL/deltagate\n# or\nuv tool install git+https://github.com/SuperMarioYL/deltagate"
+      }
+    ]
+  },
+  "limitations": [
+    {
+      "zh": "它测变化量，不测正确性：越限记录可能是无害改写，未越限的记录也可能出错。",
+      "en": "It measures change, not correctness: a breached record may be a harmless rewrite, and an under-limit record may still be wrong."
+    },
+    {
+      "zh": "它需要一份已放行的结构化输出当参考值；如果上一批只留下签字 PDF、没有字段，就对不出任何东西。",
+      "en": "It needs a stored, approved structured output as the reference; if the last batch survives only as signed PDFs, there is nothing to compare against."
+    },
+    {
+      "zh": "只吃已结构化的 JSON：不做抽取、不调模型、不做 OCR，不支持 PDF、图片、Excel 直接输入。",
+      "en": "Structured JSON only: no extraction, no model calls, no OCR, and no direct PDF, image or Excel input."
+    },
+    {
+      "zh": "text 用确定性编辑距离（rapidfuzz ratio），不做语义等价判断，同义改写仍会被记为变化。",
+      "en": "Text uses a deterministic edit distance (rapidfuzz ratio), not semantic equivalence; a paraphrase is still recorded as a change."
+    },
+    {
+      "zh": "数组按下标比较，元素重排会表现为多个字段变化；嵌套超过两层、跨 output_type 的规则继承不在 v0.1 范围内。",
+      "en": "Arrays are compared by index, so a reorder shows up as several changed fields; nesting deeper than two levels and rule inheritance across output_type are out of scope for v0.1."
+    },
+    {
+      "zh": "没有数据库或对象存储连接器，没有定时重跑、drift 告警或自动回滚。",
+      "en": "No database or object-store connectors, no scheduled re-runs, no drift alerts and no automatic rollback."
+    },
+    {
+      "zh": "不做标注工具与统计显著性检验；产物只有 JSONL、单文件 HTML 与 review CSV，没有 Excel 版式。",
+      "en": "No labelling tool and no significance testing; the output is JSONL, a single HTML file and a review CSV, with no Excel report."
+    }
+  ],
+  "scene": {
+    "kind": "neon-graph",
+    "fallback": "/assets/scene-dark.svg",
+    "fallbackLight": "/assets/scene-light.svg",
+    "caption": {
+      "zh": "逐字段比对：24 条记录中 20 条放行、4 条进入复查（示意图）",
+      "en": "Field-by-field comparison: 20 of 24 records release, 4 go to review (illustrative)"
+    }
+  },
+  "story": {
+    "intro": {
+      "title": {
+        "zh": "换包之后，“这批还能不能放行”缺一条记录级的判据。",
+        "en": "After a swap, “may this batch ship?” has no per-record criterion."
+      },
+      "body": {
+        "zh": "同一个抽取 prompt、同一张票据，重跑之后字段值就可能不一样：金额差了 8 毛，日期挪了一天，或者本来两行的明细变成了三行。逐字节 diff 会把无害改写和真实差额标成同一件事；聚合评测告诉你均分动了，却不说是哪 4 条要重读；人工重读最可靠，也最容易被跳过。缺的不是更多指标，而是一条按记录给出的放行判据。",
+        "en": "Same extraction prompt, same invoice, re-run — and the field values differ: eight jiao on the total, a date one day later, or a two-line item that now has three lines. A byte diff gives a harmless rewrite and a real shortfall the same weight; aggregate evals say the score moved but not which four records to re-read; re-reading by hand is the most reliable option and the easiest to skip. What is missing is not another metric but a release criterion stated per record."
+      }
+    },
+    "sections": [
+      {
+        "title": {
+          "zh": "一次 check 只做三件事",
+          "en": "One check does three things"
+        },
+        "body": {
+          "zh": "读两份快照、按规则逐字段比较、把结果写成四件产物。金额与数值用相对限（金额另设绝对 floor），日期按整日差，code 归一化后精确比较，text 用确定性编辑距离；数组按下标逐项比较，长度变化本身直接判 REVIEW。",
+          "en": "Load two snapshots, compare every field under the rules, write four artifacts. Money and numeric fields use relative limits (money adds an absolute floor), dates compare in whole days, code compares exactly after normalization, text uses a deterministic edit distance, and arrays compare item by item by index; a length change is itself a REVIEW."
+        },
+        "image": {
+          "light": "/assets/process-light.svg",
+          "dark": "/assets/process-dark.svg",
+          "alt": {
+            "zh": "五步放行流程：init 写默认限、calibrate 从历史标定、check 逐条判定、review 人工裁决、accept 归档新快照；示例批次 24 条中 20 条放行、4 条复查，退出码 3。",
+            "en": "Five-step release flow: init writes default limits, calibrate fits them from history, check decides every record, a reviewer adjudicates the flagged ones, accept archives the new snapshot; the sample batch is 20 releases and 4 reviews out of 24, exit code 3."
+          },
+          "mobile": {
+            "light": "/assets/process-mobile-light.svg",
+            "dark": "/assets/process-mobile-dark.svg"
+          }
+        }
+      },
+      {
+        "title": {
+          "zh": "三处职责，各归一处",
+          "en": "Three responsibilities, one owner each"
+        },
+        "body": {
+          "zh": "store.py 是唯一知道目录布局的模块，rules.py 是限值的唯一权威：limits_version 等于 v 加整份规则文件 sha256 的前 12 位，改任何一条限值都会换版本。delta.py 定义比较语义，calibrate.py、gate.py、report.py 只消费它。单进程，无常驻服务，运行时零网络调用。",
+          "en": "store.py is the only module that knows the directory layout, and rules.py is the only authority for limits: limits_version is v plus the first 12 hex characters of the whole rules file's SHA-256, so editing any limit changes the version. delta.py defines the comparison semantics that calibrate.py, gate.py and report.py consume. One process, no daemon, zero network calls at runtime."
+        },
+        "image": {
+          "light": "/assets/architecture-light.svg",
+          "dark": "/assets/architecture-dark.svg",
+          "alt": {
+            "zh": "模块架构：accepted、rerun、history 由 store 读取；rules 持有唯一限值；delta 逐字段比较；gate 汇总判定；report 输出 HTML 与 review.csv；calibrate 回写限值。",
+            "en": "Module architecture: store reads accepted, rerun and history; rules holds the only limits; delta compares fields; gate aggregates verdicts; report renders HTML and review.csv; calibrate writes limits back."
+          },
+          "mobile": {
+            "light": "/assets/architecture-mobile-light.svg",
+            "dark": "/assets/architecture-mobile-dark.svg"
+          }
+        }
+      },
+      {
+        "title": {
+          "zh": "接进流程，但不接管流程",
+          "en": "It joins your pipeline without taking it over"
+        },
+        "body": {
+          "zh": "输入是已结构化的 JSON，每条记录一个文件；输出是逐条判定、单文件 HTML 报告与待填的 review.csv。它不连接数据库或对象存储，不调度重跑、不做 drift 告警，也不回滚。要不要让构建失败，由你按 0 / 2 / 3 / 4 退出码自己决定。",
+          "en": "Input is already-structured JSON, one file per record; output is a per-record verdict, a single-file HTML report and a review.csv waiting for decisions. It has no database or object-store connector, does not schedule re-runs, raise drift alerts or roll anything back. Whether a build fails is your choice, made from the 0 / 2 / 3 / 4 exit codes."
+        },
+        "image": {
+          "light": "/assets/capabilities-light.svg",
+          "dark": "/assets/capabilities-dark.svg",
+          "alt": {
+            "zh": "能力与边界：以结构化 JSON 为中心，五类字段、四类产物、四个命令、0/2/3/4 退出码；零网络调用，不做抽取或 OCR。",
+            "en": "Capabilities and boundaries: centred on structured JSON, with five field kinds, four artifacts, four commands and exit codes 0/2/3/4; zero network calls, no extraction and no OCR."
+          },
+          "mobile": {
+            "light": "/assets/capabilities-mobile-light.svg",
+            "dark": "/assets/capabilities-mobile-dark.svg"
+          }
+        }
+      }
+    ],
+    "details": [
+      {
+        "title": {
+          "zh": "限值文件",
+          "en": "The rules file"
+        },
+        "body": {
+          "zh": "规则文件是唯一的限值来源。init 会为快照里出现的每个字段写一条，数组元素写成 line_items[].amount 这样的模板。kind 决定比较方式，unit 必须是该类型允许的单位；limit 是主阈值，floor 是绝对下限；normalize 在比较前执行，可选 nfkc、strip_ws、cf_upper。手工改 limit 不会更新 calibration 段：要么重跑 calibrate，要么把 source 改回 defaults 并说明原因。",
+          "en": "The rules file is the single source of limits. init writes one entry for every field in the snapshot, keying array elements by a template such as line_items[].amount. kind chooses the comparison and unit must be one that kind allows; limit is the main threshold and floor an absolute lower bound; normalize runs before comparison and accepts nfkc, strip_ws and cf_upper. Editing limit by hand does not update the calibration block: re-run calibrate, or set source back to defaults and say why."
+        },
+        "code": "limits:\n  invoice:\n    invoiceNum:\n      kind: code\n      unit: exact\n      limit: 0.0\n      normalize: [nfkc, strip_ws, cf_upper]\n    total_amount:\n      kind: money\n      unit: relative\n      limit: 0.005\n      floor: 0.01\n    remark:\n      kind: text\n      unit: edit_ratio\n      limit: 0.2\n      normalize: [nfkc, strip_ws]\ncalibration:\n  source: calibrated\n  budget: 0.05\n  quantile: 0.95\n  holdout_flag_rate: 0.03125"
+      },
+      {
+        "title": {
+          "zh": "标定的规则",
+          "en": "How calibration decides"
+        },
+        "body": {
+          "zh": "至少 3 个快照才能切出“拟合 + 留出一对”；一个字段至少 5 次观测才拟合；code 字段永不拟合；分位数为 0 时不采纳，保留已声明的限值。限值取 1 − budget 分位：把预算从 5% 提高到 30%，限值会收紧，holdout flag 率随之上升——测试固定了这个方向。",
+          "en": "At least three snapshots are needed to fit and still hold one pair out; a field needs at least five observations before it is fitted; code fields are never fitted; a zero quantile is not adopted, so the declared limit stays. The limit sits at the 1 − budget quantile: raising the budget from 5% to 30% tightens the limits and raises the holdout flag rate — a test pins that direction."
+        },
+        "code": "deltagate calibrate --history examples/invoices/history --rules examples/invoices/rules.yaml --budget 0.05"
+      },
+      {
+        "title": {
+          "zh": "逐条判定与结构变化",
+          "en": "Field verdicts and structural changes"
+        },
+        "body": {
+          "zh": "记录里任一字段越限，整条记录就是 REVIEW；数组长度变化、字段新增或删除同样是结构变化，直接进队列。退出码：0 全部放行，3 有待复查，2 参数、规则或状态错误，4 畸形记录超过候选批次的 2%。畸形记录会被计数并跳过，超过预算才终止。",
+          "en": "If any field in a record breaches, the whole record is REVIEW; an array resize or an added or removed field is a structural change and also goes straight to the queue. Exit codes: 0 when everything released, 3 when a record needs review, 2 for a usage, rules or state error, and 4 when more than 2% of the candidate records are malformed. Malformed records are counted and skipped; only above that share does the run stop."
+        }
+      },
+      {
+        "title": {
+          "zh": "接进 CI 与人工队列",
+          "en": "Wire it into CI and the reviewer queue"
+        },
+        "body": {
+          "zh": "把 3 当作“需要人”而不是“构建坏了”：check 之后取 review.csv，评审填 release 或 reject，reject 必须写理由；再 accept 归档新快照，下一次 calibrate 就多一个历史点。同一批次或同一份 review 重复 accept 会被拒绝（退出码 2）。",
+          "en": "Treat 3 as “a human is needed”, not “the build broke”: after check, hand review.csv to a reviewer who writes release or reject (a reject must carry a reason); then accept archives the new snapshot and the next calibrate gains a history point. Accepting the same batch, or the same review file, twice is refused with exit code 2."
+        },
+        "code": "deltagate check --baseline accepted/ --candidate rerun/ --rules rules.yaml\n# exit 3 → fill out/review.csv, then:\ndeltagate accept --manifest out/manifest.json --review out/review.csv --into accepted/ --rules rules.yaml"
+      }
+    ]
+  },
+  "cta": {
+    "headline": {
+      "zh": "把放行判据\n钉在每条记录上。",
+      "en": "Put the release decision\non every record."
+    },
+    "sub": {
+      "zh": "MIT 开源的本地 CLI：无账号、无守护进程、运行时零网络调用。",
+      "en": "An MIT-licensed local CLI: no account, no daemon, zero network calls at runtime."
+    },
+    "button": {
+      "zh": "在 GitHub 上查看",
+      "en": "View on GitHub"
+    }
+  },
+  "footer": {
+    "tag": {
+      "zh": "MIT 开源 · 本地 CLI · 运行时零网络调用",
+      "en": "MIT open source · local CLI · zero network calls at runtime"
+    }
+  }
+}
