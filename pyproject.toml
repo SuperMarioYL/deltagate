@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "deltagate"
+version = "0.1.0"
+description = "Record-by-record release gate for re-extracted documents, driven by per-field delta limits."
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "SuperMarioYL" }]
+keywords = ["delta-check", "structured-output", "release-gate", "document-extraction"]
+classifiers = [
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Environment :: Console",
+]
+dependencies = [
+  "typer>=0.12,<1",
+  "pyyaml>=6,<7",
+  "pydantic>=2.7,<3",
+  "rapidfuzz>=3.9,<4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2"]
+
+[project.scripts]
+deltagate = "deltagate.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/SuperMarioYL/deltagate"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/deltagate"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

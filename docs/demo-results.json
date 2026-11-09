@@ -1,0 +1,128 @@
+{
+  "product": "DeltaGate",
+  "version": "0.1.0",
+  "recorded_at": "2026-11-09T22:32:38Z",
+  "environment": {
+    "python": "3.12.13",
+    "platform": "darwin",
+    "machine": "arm64",
+    "dependencies": [
+      "typer>=0.12,<1",
+      "pyyaml>=6,<7",
+      "pydantic>=2.7,<3",
+      "rapidfuzz>=3.9,<4"
+    ],
+    "network_calls": 0
+  },
+  "fixture": {
+    "kind": "synthetic",
+    "records": 24,
+    "output_type": "invoice",
+    "baseline": "examples/invoices/accepted",
+    "candidate": "examples/invoices/rerun",
+    "history": [
+      "hist-2026-07-01",
+      "hist-2026-08-01",
+      "hist-2026-09-01"
+    ],
+    "rules": "examples/invoices/rules.yaml",
+    "limits_version": "v0f168164212b",
+    "note": "All invoice data is synthetic and carries no real company or tax information. The recorded commands run in order in a fresh working directory containing a copy of examples/: rules-cal.yaml and review-filled.csv are scratch files the sequence itself writes, and accepted/ starts empty."
+  },
+  "commands": [
+    {
+      "label": "infer default limits",
+      "command": "deltagate init --accepted examples/invoices/accepted --out rules-cal.yaml",
+      "stdout": "wrote rules-cal.yaml · limits vecb5c3d46449 · 1 output type(s) · 13 field(s) · defaults (budget 5.0%)\n",
+      "stderr": "",
+      "exit_code": 0
+    },
+    {
+      "label": "calibrate limits from history",
+      "command": "deltagate calibrate --history examples/invoices/history --rules rules-cal.yaml --budget 0.05",
+      "stdout": "calibrated 1 field(s) over 3 snapshot(s) · limits v0f168164212b · holdout 3.1% vs budget 5.0%\n",
+      "stderr": "",
+      "exit_code": 0
+    },
+    {
+      "label": "gate the re-run",
+      "command": "deltagate check --baseline examples/invoices/accepted --candidate examples/invoices/rerun --rules rules-cal.yaml",
+      "stdout": "DeltaGate · limits v0f168164212b · budget 5.0% · source calibrated (holdout 3.1%)\n24 records  →  20 RELEASE   4 REVIEW   flag_rate 16.7% vs budget 5.0%\nexit 3  (review required)\n  INV-1007  invoice    total_amount   ¥1,284.00 → ¥1,294.20  Δ +0.79%  limit 0.50%  BREACH\n  INV-1009  invoice    line_items     length 3 → 2                                STRUCTURAL\n  INV-1013  invoice    line_items[1].amount  ¥88.00 → ¥96.80  Δ +10.0%  limit 0.50%  BREACH\n  INV-1021  invoice    line_items     length 4 → 3                                STRUCTURAL\nout/decisions.jsonl   out/report.html   out/manifest.json\n",
+      "stderr": "",
+      "exit_code": 3
+    },
+    {
+      "label": "record the review decisions",
+      "command": "awk -F, 'BEGIN{OFS=\",\"} NR==1{print; next} {$3=\"release\"} 1' out/review.csv > review-filled.csv",
+      "stdout": "",
+      "stderr": "",
+      "exit_code": 0
+    },
+    {
+      "label": "accept the reviewed batch",
+      "command": "deltagate accept --manifest out/manifest.json --review review-filled.csv --into accepted/ --rules rules-cal.yaml",
+      "stdout": "accepted 24 record(s) into accepted/rerun-2026-11-02-20261109T223238Z · limits v0f168164212b · manifest 7076cd17d4db\n",
+      "stderr": "",
+      "exit_code": 0,
+      "note": "The batch id embeds this run's UTC timestamp and the manifest value is a hash of it, so those two tokens change on every run; the surrounding text is stable."
+    },
+    {
+      "label": "accept the same batch twice",
+      "command": "deltagate accept --manifest out/manifest.json --review review-filled.csv --into accepted/ --rules rules-cal.yaml",
+      "stdout": "",
+      "stderr": "error: batch rerun-2026-11-02-20261109T223238Z already has an accepted snapshot\n",
+      "exit_code": 2,
+      "note": "The batch id is the one the preceding accept step created; the error is written to stderr and stdout stays empty."
+    }
+  ],
+  "check_result": {
+    "batch_id": "rerun-2026-11-02-20261109T223238Z",
+    "limits_version": "v0f168164212b",
+    "accepted_snapshot_id": "accepted-2026-10-30",
+    "counts": {
+      "release": 20,
+      "review": 4
+    },
+    "flag_rate": 0.16666666666666666,
+    "budget": 0.05,
+    "calibration": {
+      "budget": 0.05,
+      "calibrated_fields": 1,
+      "history_snapshots": 3,
+      "holdout_flag_rate": 0.03125,
+      "holdout_records": 32,
+      "holdout_snapshot_id": "hist-2026-09-01",
+      "quantile": 0.95,
+      "reason": null,
+      "source": "calibrated"
+    },
+    "review_rows": [
+      "record_id,output_type,decision,limits_version,reason",
+      "INV-1007,invoice,,v0f168164212b,",
+      "INV-1009,invoice,,v0f168164212b,",
+      "INV-1013,invoice,,v0f168164212b,",
+      "INV-1021,invoice,,v0f168164212b,"
+    ]
+  },
+  "artifacts": [
+    "out/decisions.jsonl",
+    "out/report.html",
+    "out/manifest.json",
+    "out/review.csv"
+  ],
+  "media": {
+    "demo_gif": "assets/demo.gif",
+    "demo_tape": "assets/demo.tape",
+    "duration_sec": 45.3,
+    "note": "The gif is a separate recording of the same commands on the same fixture; batch ids and timestamps differ per run."
+  },
+  "limitations": [
+    "Measures change against the last accepted output, not correctness.",
+    "Requires a stored accepted snapshot; without one there is no reference value.",
+    "Reads structured JSON only: no extraction, no model calls, no OCR, no PDF/image/Excel input.",
+    "Text deltas use deterministic edit distance (rapidfuzz ratio), not semantic equivalence.",
+    "Arrays are compared by index; a reorder appears as several changed elements.",
+    "No database or object-store connectors, no scheduled re-runs, no drift monitoring, no rollback.",
+    "No ground-truth labelling tool and no statistical significance testing."
+  ]
+}

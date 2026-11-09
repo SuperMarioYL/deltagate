@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "channel": "phone",
+    "opened_date": "2026-10-03",
+    "priority": "P3",
+    "refund_amount": 0.0,
+    "subject": "查询订单状态",
+    "ticket_id": "T-2003"
+  },
+  "output_type": "ticket",
+  "record_id": "T-2003"
+}

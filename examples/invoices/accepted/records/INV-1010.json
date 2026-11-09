@@ -1,0 +1,35 @@
+{
+  "fields": {
+    "buyer": "宁波海岳制造有限公司",
+    "currency": "CNY",
+    "invoiceDate": "2026-09-11",
+    "invoiceNum": 1010,
+    "line_items": [
+      {
+        "amount": 1300.0,
+        "description": "技术服务费",
+        "quantity": 2,
+        "unit_price": 650.0
+      },
+      {
+        "amount": 2640.0,
+        "description": "运维支持",
+        "quantity": 3,
+        "unit_price": 880.0
+      },
+      {
+        "amount": 1200.0,
+        "description": "数据整理",
+        "quantity": 1,
+        "unit_price": 1200.0
+      }
+    ],
+    "remark": "发票已核对，金额无误",
+    "seller": "南京恒川数据服务有限公司",
+    "tax_amount": 154.2,
+    "total_amount": 5294.2,
+    "vat_rate": 0.03
+  },
+  "output_type": "invoice",
+  "record_id": "INV-1010"
+}

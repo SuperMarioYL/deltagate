@@ -1,0 +1,35 @@
+{
+  "fields": {
+    "buyer": "合肥清源新材料有限公司",
+    "currency": "CNY",
+    "invoiceDate": "2026-09-14",
+    "invoiceNum": 1013,
+    "line_items": [
+      {
+        "amount": 1760.0,
+        "description": "接口开发",
+        "quantity": 2,
+        "unit_price": 880.0
+      },
+      {
+        "amount": 96.8,
+        "description": "运维支持",
+        "quantity": 1,
+        "unit_price": 88.0
+      },
+      {
+        "amount": 1500.0,
+        "description": "技术服务费",
+        "quantity": 1,
+        "unit_price": 1500.0
+      }
+    ],
+    "remark": "发票已核对，金额无误",
+    "seller": "南京恒川数据服务有限公司",
+    "tax_amount": 200.88,
+    "total_amount": 3548.88,
+    "vat_rate": 0.06
+  },
+  "output_type": "invoice",
+  "record_id": "INV-1013"
+}

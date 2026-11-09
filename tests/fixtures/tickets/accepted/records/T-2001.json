@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "channel": "web",
+    "opened_date": "2026-10-01",
+    "priority": "P2",
+    "refund_amount": 100.0,
+    "subject": "无法连接打印机",
+    "ticket_id": "T-2001"
+  },
+  "output_type": "ticket",
+  "record_id": "T-2001"
+}

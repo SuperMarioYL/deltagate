@@ -1,0 +1,35 @@
+{
+  "fields": {
+    "buyer": "宁波海岳制造有限公司",
+    "currency": "CNY",
+    "invoiceDate": "2026-09-21",
+    "invoiceNum": 1020,
+    "line_items": [
+      {
+        "amount": 1950.0,
+        "description": "技术服务费",
+        "quantity": 3,
+        "unit_price": 650.0
+      },
+      {
+        "amount": 880.0,
+        "description": "运维支持",
+        "quantity": 1,
+        "unit_price": 880.0
+      },
+      {
+        "amount": 2400.0,
+        "description": "数据整理",
+        "quantity": 2,
+        "unit_price": 1200.0
+      }
+    ],
+    "remark": "发票已核对，金额无误",
+    "seller": "苏州明远软件有限公司",
+    "tax_amount": 156.9,
+    "total_amount": 5386.9,
+    "vat_rate": 0.03
+  },
+  "output_type": "invoice",
+  "record_id": "INV-1020"
+}

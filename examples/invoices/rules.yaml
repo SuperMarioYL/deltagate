@@ -1,0 +1,105 @@
+# DeltaGate rules. Edit limits below; limits_version hashes this whole file.
+# kind: money | numeric | date | code | text
+calibration:
+  budget: 0.05
+  calibrated_fields: 1
+  history_snapshots: 3
+  holdout_flag_rate: 0.03125
+  holdout_records: 32
+  holdout_snapshot_id: hist-2026-09-01
+  quantile: 0.95
+  reason: null
+  source: calibrated
+limits:
+  invoice:
+    buyer:
+      floor: 0.0
+      kind: text
+      limit: 0.2
+      normalize:
+      - nfkc
+      - strip_ws
+      unit: edit_ratio
+    currency:
+      floor: 0.0
+      kind: text
+      limit: 0.2
+      normalize:
+      - nfkc
+      - strip_ws
+      unit: edit_ratio
+    invoiceDate:
+      floor: 0.0
+      kind: date
+      limit: 0.0
+      normalize: []
+      unit: days
+    invoiceNum:
+      floor: 0.0
+      kind: code
+      limit: 0.0
+      normalize:
+      - nfkc
+      - strip_ws
+      - cf_upper
+      unit: exact
+    line_items[].amount:
+      floor: 0.01
+      kind: money
+      limit: 0.005
+      normalize: []
+      unit: relative
+    line_items[].description:
+      floor: 0.0
+      kind: text
+      limit: 0.2
+      normalize:
+      - nfkc
+      - strip_ws
+      unit: edit_ratio
+    line_items[].quantity:
+      floor: 0.0
+      kind: numeric
+      limit: 0.01
+      normalize: []
+      unit: relative
+    line_items[].unit_price:
+      floor: 0.01
+      kind: money
+      limit: 0.005
+      normalize: []
+      unit: relative
+    remark:
+      floor: 0.0
+      kind: text
+      limit: 0.2
+      normalize:
+      - nfkc
+      - strip_ws
+      unit: edit_ratio
+    seller:
+      floor: 0.0
+      kind: text
+      limit: 0.2
+      normalize:
+      - nfkc
+      - strip_ws
+      unit: edit_ratio
+    tax_amount:
+      floor: 0.01
+      kind: money
+      limit: 0.0024527869425964442
+      normalize: []
+      unit: relative
+    total_amount:
+      floor: 0.01
+      kind: money
+      limit: 0.005
+      normalize: []
+      unit: relative
+    vat_rate:
+      floor: 0.0
+      kind: numeric
+      limit: 0.01
+      normalize: []
+      unit: relative

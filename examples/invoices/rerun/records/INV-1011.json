@@ -1,0 +1,35 @@
+{
+  "fields": {
+    "buyer": "合肥清源新材料有限公司",
+    "currency": "CNY",
+    "invoiceDate": "2026-09-12",
+    "invoiceNum": 1011,
+    "line_items": [
+      {
+        "amount": 3600.0,
+        "description": "运维支持",
+        "quantity": 3,
+        "unit_price": 1200.0
+      },
+      {
+        "amount": 1500.0,
+        "description": "数据整理",
+        "quantity": 1,
+        "unit_price": 1500.0
+      },
+      {
+        "amount": 4800.0,
+        "description": "接口开发",
+        "quantity": 2,
+        "unit_price": 2400.0
+      }
+    ],
+    "remark": "发票已核对，金额无误",
+    "seller": "苏州明远软件有限公司（已核）",
+    "tax_amount": 594.0,
+    "total_amount": 10494.0,
+    "vat_rate": 0.06
+  },
+  "output_type": "invoice",
+  "record_id": "INV-1011"
+}

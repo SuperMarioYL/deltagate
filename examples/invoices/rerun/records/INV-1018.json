@@ -1,0 +1,35 @@
+{
+  "fields": {
+    "buyer": "宁波海岳制造有限公司",
+    "currency": "CNY",
+    "invoiceDate": "2026-09-19",
+    "invoiceNum": 1018,
+    "line_items": [
+      {
+        "amount": 880.0,
+        "description": "技术服务费用",
+        "quantity": 1,
+        "unit_price": 880.0
+      },
+      {
+        "amount": 2400.0,
+        "description": "现场实施",
+        "quantity": 2,
+        "unit_price": 1200.0
+      },
+      {
+        "amount": 4500.0,
+        "description": "技术服务费",
+        "quantity": 3,
+        "unit_price": 1500.0
+      }
+    ],
+    "remark": "发票已核对，金额无误",
+    "seller": "杭州云启信息技术有限公司",
+    "tax_amount": 233.4,
+    "total_amount": 8013.4,
+    "vat_rate": 0.03
+  },
+  "output_type": "invoice",
+  "record_id": "INV-1018"
+}

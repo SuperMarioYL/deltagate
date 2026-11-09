@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "channel": "email",
+    "opened_date": "2026-10-02",
+    "priority": "P1",
+    "refund_amount": 110.0,
+    "subject": "退款金额有疑问",
+    "ticket_id": "T-2002"
+  },
+  "output_type": "ticket",
+  "record_id": "T-2002"
+}

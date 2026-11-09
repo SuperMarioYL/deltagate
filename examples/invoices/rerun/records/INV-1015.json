@@ -1,0 +1,35 @@
+{
+  "fields": {
+    "buyer": "合肥清源新材料有限公司",
+    "currency": "CNY",
+    "invoiceDate": "2026-09-16",
+    "invoiceNum": 1015,
+    "line_items": [
+      {
+        "amount": 650.0,
+        "description": "技术服务费",
+        "quantity": 1,
+        "unit_price": 650.0
+      },
+      {
+        "amount": 1760.0,
+        "description": "运维支持",
+        "quantity": 2,
+        "unit_price": 880.0
+      },
+      {
+        "amount": 3600.0,
+        "description": "数据整理",
+        "quantity": 3,
+        "unit_price": 1200.0
+      }
+    ],
+    "remark": "发票已核对，金额无误",
+    "seller": "杭州云启信息技术有限公司",
+    "tax_amount": 360.6,
+    "total_amount": 6370.6,
+    "vat_rate": 0.06
+  },
+  "output_type": "invoice",
+  "record_id": "INV-1015"
+}
